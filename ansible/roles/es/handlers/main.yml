@@ -1,0 +1,8 @@
+---
+# ------------ HANDLERS ------------
+
+# put this in roles/es/handlers/main.yml
+- name: restart elasticsearch
+  systemd:
+    name: elasticsearch
+    state: restarted

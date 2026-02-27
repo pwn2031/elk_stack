@@ -1,0 +1,73 @@
+---
+# roles/ls/tasks/main.yml
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Install Java runtime
+  apt:
+    name: default-jre
+    state: present
+
+- name: Install Logstash
+  apt:
+    name: logstash
+    state: present
+
+# NEW: ensure data dir exists and owned by logstash
+- name: Ensure logstash data dir exists and owned by logstash
+  file:
+    path: /usr/share/logstash/data
+    state: directory
+    owner: logstash
+    group: logstash
+    mode: '0755'
+
+# CHANGED: use template instead of inline copy
+- name: Deploy test pipeline
+  template:
+    src: test.conf.j2          # put this under roles/ls/templates/test.conf.j2
+    dest: /etc/logstash/conf.d/test.conf
+    owner: root
+    group: logstash
+    mode: '0640'
+  notify: restart logstash
+
+# you can remove this old inline config block from the screenshot:
+# - name: Deploy Logstash test config
+#   copy:
+#     dest: /etc/logstash/conf.d/test.conf
+#     content: |
+#       input { stdin { } }
+#       output {
+#         elasticsearch {
+#           hosts => ["http://localhost:9200"]
+#           index => "test-logs-%{+YYYY.MM.dd}"
+#         }
+#         stdout { codec => rubydebug }
+#       }
+
+- name: Clear Elasticsearch keystore entries (post-install cleanup)
+  shell: |
+    sudo -u elasticsearch /usr/share/elasticsearch/bin/elasticsearch-keystore list | \
+    xargs -r sudo -u elasticsearch /usr/share/elasticsearch/bin/elasticsearch-keystore remove 2>/dev/null || true
+  args:
+    executable: /bin/bash
+  register: keystore_cleanup
+  changed_when: '"removed" in keystore_cleanup.stdout or keystore_cleanup.rc == 0'
+
+# REPLACED: use service module name from your snippet
+- name: Ensure logstash started and enabled
+  service:
+    name: logstash
+    state: started
+    enabled: yes
+
+- name: Check ES index creation
+  shell: curl -s "localhost:9200/_cat/indices/test-logs-*?v" || echo "No index yet"
+  register: indices
+
+- name: Print indices
+  debug:
+    var: indices.stdout

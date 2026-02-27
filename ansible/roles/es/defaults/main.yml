@@ -1,0 +1,10 @@
+es_http_port: 9200
+es_host: "https://localhost:{{ es_http_port }}"
+
+es_enable_security: true
+es_enable_http_ssl: true
+
+es_http_ca_cert: "/etc/elasticsearch/certs/http_ca.crt"
+
+# you can override this from playbook/vault
+es_bootstrap_password: "changeme-strong-password"

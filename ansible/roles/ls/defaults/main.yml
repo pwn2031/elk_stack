@@ -1,0 +1,6 @@
+ls_es_host: "{{ hostvars[groups['es'][0]].es_host | default('https://localhost:9200') }}"
+ls_es_user: "elastic"
+# ls_es_password: "{{ hostvars[groups['es'][0]].es_password | default(es_bootstrap_password) }}"
+ls_es_password: "{{ es_bootstrap_password }}"
+ls_es_ca_cert: "{{ hostvars[groups['es'][0]].es_http_ca_cert | default('/etc/elasticsearch/certs/http_ca.crt') }}"
+ls_index_prefix: "test-logs"

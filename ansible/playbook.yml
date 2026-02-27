@@ -1,0 +1,11 @@
+---
+- name: Install Elasticsearch 8.x on Ubuntu
+  hosts: es
+
+  become: true
+  vars:
+    es_bootstrap_password: "r2v29BFs9MJsVSiuCA_7"   # choose and keep
+  roles:
+    - es
+    - ls
+    - k

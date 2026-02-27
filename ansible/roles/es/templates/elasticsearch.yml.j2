@@ -1,0 +1,18 @@
+cluster.name: elasticsearch
+node.name: "{{ inventory_hostname }}"
+
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+network.host: 0.0.0.0
+http.port: {{ es_http_port }}
+
+discovery.type: single-node
+
+xpack.security.enabled: {{ es_enable_security | bool | lower }}
+xpack.security.http.ssl.enabled: {{ es_enable_http_ssl | bool | lower }}
+
+xpack.security.http.ssl.keystore.path: certs/http.p12
+
+# Important: keep transport SSL explicitly disabled for this lab
+xpack.security.transport.ssl.enabled: false

@@ -1,0 +1,20 @@
+input {
+  stdin { }
+}
+
+output {
+  elasticsearch {
+    hosts  => ["{{ ls_es_host }}"]
+    user   => "{{ ls_es_user }}"
+    password => "{{ ls_es_password }}"
+
+    index  => "{{ ls_index_prefix }}-%{+YYYY.MM.dd}"
+
+    ssl    => true
+    ssl_verification_mode      => "none"   # for lab; use "certificate" in real env
+    # For strict verification instead of "none", comment above and use:
+    # ssl_certificate_authorities => ["{{ ls_es_ca_cert }}"]
+  }
+
+  stdout { codec => rubydebug }
+}

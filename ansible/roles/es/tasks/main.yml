@@ -1,0 +1,175 @@
+---
+# roles/es/tasks/main.yml
+
+- name: Download Elasticsearch GPG key
+  get_url:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    dest: /tmp/elasticsearch-key.asc
+    mode: "0644"
+
+- name: Dearmor GPG key to keyring
+  shell: gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg /tmp/elasticsearch-key.asc
+  args:
+    creates: /usr/share/keyrings/elasticsearch-keyring.gpg
+
+- name: Set keyring permissions
+  file:
+    path: /usr/share/keyrings/elasticsearch-keyring.gpg
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Add Elasticsearch APT repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main"
+    state: present
+    filename: elastic-8.x
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+
+- name: Install Elasticsearch
+  apt:
+    name: elasticsearch
+    state: present
+
+# NEW: JVM Heap for t3.medium (1GB max)
+- name: Set conservative JVM heap for t3.medium
+  copy:
+    content: |
+      -Xms1g
+      -Xmx1g
+    dest: /etc/elasticsearch/jvm.options.d/heap.options
+    owner: root
+    group: elasticsearch
+    mode: '0640'
+  notify: restart elasticsearch
+
+# NEW: Tune sysctl early
+- name: Tune vm.max_map_count early
+  sysctl:
+    name: vm.max_map_count
+    value: '262144'
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+# NEW: Disable memory lock limit (helps small instances)
+- name: Unlock Elasticsearch memory
+  sysctl:
+    name: vm.swappiness
+    value: 1
+    state: present
+    sysctl_set: yes
+    reload: yes    
+
+# --- FROM THE OUTLINE YOU COPIED ---
+
+- name: Template elasticsearch.yml
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: '0640'
+  notify: restart elasticsearch
+
+# - name: Ensure vm.max_map_count is high enough
+#   sysctl:
+#     name: vm.max_map_count
+#     value: '262144'
+#     state: present
+#     sysctl_set: yes
+#     reload: yes
+
+- name: Ensure elasticsearch is started
+  service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+# set elastic password only first time
+# - name: Set elastic user password (first run only)
+#   command: >
+#     /usr/share/elasticsearch/bin/elasticsearch-reset-password
+#     -u elastic  -s {{ es_bootstrap_password }}
+#   args:
+#     creates: /etc/elasticsearch/.password_set
+#   register: es_pass_cmd
+#   changed_when: "'New value' in es_pass_cmd.stdout"
+
+- name: Set elastic user password (first run only)
+  command: >
+    /usr/share/elasticsearch/bin/elasticsearch-reset-password
+    -u elastic -b -s
+  args:
+    creates: /etc/elasticsearch/.password_set
+  register: es_pass_cmd
+  changed_when: "'New value' in es_pass_cmd.stdout"
+
+
+
+- name: Mark password set
+  file:
+    path: /etc/elasticsearch/.password_set
+    state: touch
+# - name: Set elastic user password
+#   command: >
+#     /usr/share/elasticsearch/bin/elasticsearch-reset-password
+#     -u elastic -b -s {{ es_bootstrap_password }}
+#   args:
+#     creates: /etc/elasticsearch/.password_set
+#   register: es_pass_cmd
+
+# - name: Mark password set
+#   file:
+#     path: /etc/elasticsearch/.password_set
+#     state: touch
+
+# - set_fact:
+#     es_password: "{{ es_bootstrap_password }}"
+
+# --- SERVICE HANDLING (if you still want explicit systemd tasks) ---
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Check Elasticsearch service status
+  systemd:
+    name: elasticsearch
+    state: started
+  register: service_status
+
+- name: Display service status
+  debug:
+    var: service_status.status
+
+# ---- AFTER "Check Elasticsearch service status" / "Display service status" ----
+
+- name: Generate random password for kibana_system (first run only)
+  set_fact:
+    kibana_system_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters,digits') }}"
+  when: kibana_system_password is not defined
+
+- name: Set kibana_system password via Elasticsearch security API
+  uri:
+    url: "https://localhost:9200/_security/user/kibana_system/_password"
+    method: POST
+    user: "elastic"
+    password: "{{ es_bootstrap_password }}"
+    body_format: json
+    body:
+      password: "{{ kibana_system_password }}"
+    validate_certs: false      # ok for lab; use true + CA in real env
+  register: kibana_pwd_set
+  changed_when: kibana_pwd_set.status == 200
+  retries: 10
+  delay: 6
+  until: kibana_pwd_set.status == 200
+
+- name: Expose kibana_system creds for other roles
+  set_fact:
+    kibana_elasticsearch_username: "kibana_system"
+    kibana_elasticsearch_password: "{{ kibana_system_password }}"
