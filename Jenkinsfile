@@ -77,6 +77,8 @@ ${elkIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/pawan-elk-key.p
 
     post {
         always {
+            echo 'Pipeline finished (success or failure)'
+            // If you want artifacts later, uncomment:
             // archiveArtifacts artifacts: 'terraform/tfplan, ansible/hosts.ini, **/*.log', allowEmptyArchive: true
         }
         success {
