@@ -7,4 +7,4 @@ es_enable_http_ssl: true
 es_http_ca_cert: "/etc/elasticsearch/certs/http_ca.crt"
 
 # you can override this from playbook/vault
-es_bootstrap_password: "changeme-strong-password"
+# es_bootstrap_password: "changeme-strong-password"

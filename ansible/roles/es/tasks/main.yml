@@ -99,22 +99,22 @@
 #   register: es_pass_cmd
 #   changed_when: "'New value' in es_pass_cmd.stdout"
 
-- name: Set elastic user password (first run only)
-  command: >
-    /usr/share/elasticsearch/bin/elasticsearch-reset-password
-    -u elastic -b -s
-  args:
-    creates: /etc/elasticsearch/.password_set
-  register: es_pass_cmd
-  changed_when: "'New value' in es_pass_cmd.stdout"
+# - name: Set elastic user password (first run only)
+#   command: >
+#     /usr/share/elasticsearch/bin/elasticsearch-reset-password
+#     -u elastic -b -s
+#   args:
+#     creates: /etc/elasticsearch/.password_set
+#   register: es_pass_cmd
+#   changed_when: "'New value' in es_pass_cmd.stdout"
 
 
 
-- name: Mark password set
-  file:
-    path: /etc/elasticsearch/.password_set
-    state: touch
-# - name: Set elastic user password
+# - name: Mark password set
+#   file:
+#     path: /etc/elasticsearch/.password_set
+#     state: touch
+# # - name: Set elastic user password
 #   command: >
 #     /usr/share/elasticsearch/bin/elasticsearch-reset-password
 #     -u elastic -b -s {{ es_bootstrap_password }}
