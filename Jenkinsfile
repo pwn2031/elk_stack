@@ -71,7 +71,7 @@ ${elkIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/pawan-elk-key.p
                     inventory: 'ansible/hosts.ini',
                     credentialsId: 'ssh-ansible-key',
                     extras: """
-                        --extra-vars "es_bootstrap_password=3K+Hmcvo56SwKxfPi82U cluster_name=pawan-elk-cluster"
+                        --extra-vars "es_bootstrap_password=r2v29BFs9MJsVSiuCA_7 cluster_name=pawan-elk-cluster"
                     """
                 )
             }
