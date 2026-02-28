@@ -1,8 +1,6 @@
 pipeline {
     agent any
 
-    // No parameters block now
-
     stages {
 
         stage('Checkout') {
@@ -14,11 +12,17 @@ pipeline {
         stage('Terraform Init & Plan') {
             steps {
                 dir('terraform') {
-                    sh '''
-                        terraform init
-                        terraform validate
-                        terraform plan -out=tfplan
-                    '''
+                    withCredentials([usernamePassword(
+                        credentialsId: 'aws_creds',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )]) {
+                        sh '''
+                            terraform init
+                            terraform validate
+                            terraform plan -out=tfplan
+                        '''
+                    }
                 }
             }
         }
@@ -33,7 +37,13 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 dir('terraform') {
-                    sh 'terraform apply -auto-approve tfplan'
+                    withCredentials([usernamePassword(
+                        credentialsId: 'aws-creds',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )]) {
+                        sh 'terraform apply -auto-approve tfplan'
+                    }
                 }
             }
         }
