@@ -65,24 +65,25 @@ ${elkIp} ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3
         }
 
         stage('Ansible Deploy ELK') {
-    steps {
-        withEnv(['ANSIBLE_HOST_KEY_CHECKING=False']) {
-            withCredentials([string(credentialsId: 'es-bootstrap-password',
-                                   variable: 'ES_BOOTSTRAP_PASSWORD')]) {
-                dir('.') {
-                    ansiblePlaybook(
-                        playbook: 'ansible/playbook.yml',
-                        inventory: 'ansible/hosts.ini',
-                        credentialsId: 'ssh-ansible-key',
-                        extras: """
-                          --extra-vars "es_bootstrap_password=${ES_BOOTSTRAP_PASSWORD} cluster_name=pawan-elk-cluster"
-                        """
-                        )
+            steps {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=False']) {
+                    withCredentials([string(credentialsId: 'es-bootstrap-password',
+                                            variable: 'ES_BOOTSTRAP_PASSWORD')]) {
+                        dir('.') {
+                            ansiblePlaybook(
+                                playbook: 'ansible/playbook.yml',
+                                inventory: 'ansible/hosts.ini',
+                                credentialsId: 'ssh-ansible-key',
+                                extras: """
+                                  --extra-vars "es_bootstrap_password=${ES_BOOTSTRAP_PASSWORD} cluster_name=pawan-elk-cluster"
+                                """
+                            )
+                        }
                     }
                 }
             }
         }
-    }
+    }  // <-- close stages
 
     post {
         always {
