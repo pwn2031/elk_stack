@@ -67,7 +67,7 @@ ${elkIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/pawan-elk-key.p
         stage('Ansible Deploy ELK') {
             steps {
                 ansiblePlaybook(
-                    playbook: 'ansible/main.yml',
+                    playbook: 'ansible/playbook.yml',
                     inventory: 'ansible/hosts.ini',
                     credentialsId: 'ssh-ansible-key',
                     extras: """
