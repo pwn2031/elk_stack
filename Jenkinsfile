@@ -58,7 +58,7 @@ pipeline {
 
                     writeFile file: 'ansible/hosts.ini', text: """
 [es]
-${elkIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/pawan-elk-key.pem ansible_python_interpreter=/usr/bin/python3
+${elkIp} ansible_user=ubuntu ansible_python_interpreter=/usr/bin/python3
 """
                 }
             }
