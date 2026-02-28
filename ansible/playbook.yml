@@ -4,7 +4,8 @@
 
   become: true
   vars:
-    es_bootstrap_password: "r2v29BFs9MJsVSiuCA_7"   # choose and keep
+    es_bootstrap_password: "{{ es_bootstrap_password }}"   # choose and keep
+    kibana_system_password: "{{ es_bootstrap_password }}"
   roles:
     - es
     - ls

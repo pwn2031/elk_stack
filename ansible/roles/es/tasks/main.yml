@@ -148,10 +148,10 @@
 
 # ---- AFTER "Check Elasticsearch service status" / "Display service status" ----
 
-- name: Generate random password for kibana_system (first run only)
-  set_fact:
-    kibana_system_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters,digits') }}"
-  when: kibana_system_password is not defined
+# - name: Generate random password for kibana_system (first run only)
+#   set_fact:
+#     kibana_system_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters,digits') }}"
+#   when: kibana_system_password is not defined
 
 - name: Set kibana_system password via Elasticsearch security API
   uri:
