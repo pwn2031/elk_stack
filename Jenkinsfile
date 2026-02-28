@@ -13,7 +13,7 @@ pipeline {
             steps {
                 dir('terraform') {
                     withCredentials([usernamePassword(
-                        credentialsId: 'aws_creds',
+                        credentialsId: 'aws-creds',
                         usernameVariable: 'AWS_ACCESS_KEY_ID',
                         passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                     )]) {
