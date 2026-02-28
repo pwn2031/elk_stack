@@ -80,6 +80,7 @@ ${elkIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/pawan-elk-key.p
                 }
             }
         }
+    }
 
     post {
         always {
